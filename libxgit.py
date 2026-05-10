@@ -41,3 +41,31 @@ def main(argv=sys.argv[1:]):
         case "tag"          : cmd_tag(args)
         case _              : print("Bad command.")
         # commands
+
+class GitRepository (object):
+    # a repository object
+    
+    worktree = None
+    gitdir = None
+    config = None
+
+    def __init__(self, path, force=False):
+        self.worktree = path
+        self.gitdir = os.path.join(path, ".git")
+
+        if not (force or os.path.isdir(self.gitdir)):
+            raise Exception(f"Not a Git Repo {path}")
+
+        # read .git/config
+        self.conf = configparser.ConfigParser()
+        cf = repo_file(self, "config")
+
+        if cf and os.path.exists(cf):
+            self.conf.read([cf])
+        elif not force:
+            raise Exception("Config missing")
+
+        if not force:
+            vers = int(self.conf.get("core", "repositoryformatversion"))
+            if vers != 0:
+                raise Exception(f"Unsupported repositoryformatversion: {vers}")
