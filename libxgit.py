@@ -1,6 +1,7 @@
 import argparse
 import configparser
 from datetime import datetime
+from posix import mkdir
 
 try:
     import grp, pwd
@@ -15,7 +16,7 @@ import os
 import re
 import sys
 import zlib
-# imports are done
+# imports
 
 argparse = argparse.ArgumentParser(description="The best python based content tracker")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
@@ -69,3 +70,31 @@ class GitRepository (object):
             vers = int(self.conf.get("core", "repositoryformatversion"))
             if vers != 0:
                 raise Exception(f"Unsupported repositoryformatversion: {vers}")
+
+        def repo_path(repo, *path):
+            # Compute path under repo's gitdir
+            return os.path.join(repo.gitdir, *path)
+
+        def repo_file(repo, *path, mkdir=False):
+            #   Same as repo_path, but create dirname(*path) if absent.  For
+            #   example, repo_file(r, \"refs\", \"remotes\", \"origin\", \"HEAD\") will create
+            #   .git/refs/remotes/origin
+
+            if repo_dir(repo, *path[:-1], mkdir=mkdir):
+                return repo_path(repo, *path)
+
+        def repo_dir(repo, *path):
+            # same as repo_path but mkdir *path doesn't exist if mkdir does
+
+            path= repo_path(repo, *path)
+
+            if os.path.exists(path):
+                return path
+            else:
+                return Exception(f"Not a directory {path}")
+
+            if mkdir:
+                os.makedirs(path)
+                return path
+            else:
+                return None
