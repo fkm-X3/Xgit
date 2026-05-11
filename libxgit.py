@@ -2,6 +2,7 @@ import argparse
 import configparser
 from datetime import datetime
 from posix import mkdir
+from pydoc import describe
 
 try:
     import grp, pwd
@@ -45,7 +46,7 @@ def main(argv=sys.argv[1:]):
 
 class GitRepository (object):
     # a repository object
-    
+
     worktree = None
     gitdir = None
     config = None
@@ -98,3 +99,37 @@ class GitRepository (object):
                 return path
             else:
                 return None
+
+def repo_create(path)
+    # creates a new repository at path
+
+    repo = GitRepository(path, True)
+
+    # make sure the repo isn't in a empty dir
+
+    if os.path.exists(repo.worktree):
+        if not os.path.isdir(repo.worktree):
+            raise Exception (f"{path} is not a directory")
+        if os.path.exists(repo.gitdir) and os.listdir(repo.gitdir):
+            raise Exception (f"{path} is not empty")
+    else:
+        os.makedirs(repo.worktree)
+
+    assert repo_dir(repo, "branches", mkdir=True)
+    assert repo_dir(repo, "objects", mkdir=True)
+    assert repo_dir(repo, "refs", "tags", mkdir=True)
+    assert repo_dir(repo, "refs", "heads", mkdir=True)
+
+    #.git/description
+    with open(repo_file(repo, "description"), "w") as f:
+        f.write("Unamed Repo; edit this file 'description' to name the Repo.\n")
+
+    #.git/HEAD
+    with open(repo_file(repo, "HEAD"), "w") as f:
+        f.write("ref: refs/heads/master\n")
+
+    with open(repo_file(repo, "config"), "w") as f:
+        config = repo_default_config()
+        config.write(f)
+
+    return repo
